@@ -79,7 +79,7 @@ EOF
 
 # Install ORDS
 su - <<EOF
-yum-config-manager --add-repo=http://yum.oracle.com/repo/OracleLinux/OL8/oracle/software/x86_64
+yum-config-manager --add-repo=https://yum.oracle.com/repo/OracleLinux/OL8/oracle/software/x86_64
 dnf install ords -y
 EOF
 
