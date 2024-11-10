@@ -1,4 +1,8 @@
 #!/bin/bash
+# unattended_apex_install_23c.sh - Main APEX installation script that runs inside the container
+
+# Load configuration
+source /home/oracle/config.env
 
 # Start the timer
 start_time=$(date +%s)
@@ -9,7 +13,7 @@ curl -o apex-latest.zip https://download.oracle.com/otn_software/apex/apex-lates
 # Enter APEX Folder
 unzip -q apex-latest.zip
 rm apex-latest.zip
-cd apex
+cd apex || exit
 
 # Install APEX
 sqlplus / as sysdba <<EOF
@@ -22,7 +26,7 @@ EOF
 sqlplus / as sysdba <<EOF
 ALTER SESSION SET CONTAINER = FREEPDB1;
 ALTER USER APEX_PUBLIC_USER ACCOUNT UNLOCK;
-ALTER USER APEX_PUBLIC_USER IDENTIFIED BY E;
+ALTER USER APEX_PUBLIC_USER IDENTIFIED BY "${DB_PASSWORD}";
 EXIT;
 EOF
 
@@ -34,8 +38,8 @@ BEGIN
     
     APEX_UTIL.create_user(
         p_user_name       => 'ADMIN',
-        p_email_address   => 'me@example.com',
-        p_web_password    => 'OrclAPEX1999!',
+        p_email_address   => '${APEX_EMAIL}',
+        p_web_password    => '${APEX_PASSWORD}',
         p_developer_privs => 'ADMIN' );
         
     APEX_UTIL.set_security_group_id( null );
@@ -52,7 +56,7 @@ mkdir /home/oracle/scripts
 
 # Copy APEX images
 cp -r /home/oracle/apex/images /home/oracle/software/apex
-cd /home/oracle/
+cd /home/oracle/ || exit
 
 # Install software
 su - <<EOF
@@ -101,12 +105,12 @@ ords --config \${ORDS_CONFIG} install \
      --gateway-mode proxied \
      --gateway-user APEX_PUBLIC_USER \
      --password-stdin <<EOT
-E
-E
+${DB_PASSWORD}
+${DB_PASSWORD}
 EOT
 EOF
 
-# Create a start ORDS
+# Create start ORDS script
 su - <<EOF
 echo 'export ORDS_HOME=/usr/local/bin/ords' > /home/oracle/scripts/start_ords.sh
 echo 'export _JAVA_OPTIONS="-Xms512M -Xmx512M"' >> /home/oracle/scripts/start_ords.sh
@@ -114,14 +118,13 @@ echo 'LOGFILE=/home/oracle/logs/ords-$(date +"%Y%m%d").log' >> /home/oracle/scri
 echo 'nohup \${ORDS_HOME} --config /etc/ords/config serve >> \$LOGFILE 2>&1 & echo "View log file with : tail -f \$LOGFILE"' >> /home/oracle/scripts/start_ords.sh
 EOF
 
-
-# Create a start ORDS
+# Create stop ORDS script
 su - <<EOF
 echo 'kill \`ps -ef | grep [o]rds.war | awk "{print \$2}"\`' > /home/oracle/scripts/stop_ords.sh
 sed -i 's/"/'\''/g' /home/oracle/scripts/stop_ords.sh
 EOF
 
-# Create a startup script
+# Create startup script
 su - <<EOF
 echo 'sudo sh /home/oracle/scripts/start_ords.sh' > /opt/oracle/scripts/startup/01_auto_ords.sh
 EOF
@@ -140,10 +143,7 @@ EOF
 
 # Fix MBEAN Warning
 file_path=$(find / -name "logging.properties" 2>/dev/null | head -n 1)
-echo $file_path
-# Check if file_path is not empty
 if [ -n "$file_path" ]; then
-    # Append the line to the file
     echo "oracle.jdbc.level=OFF" | sudo tee -a "$file_path"
 else
     echo "Logging properties file not found."
@@ -159,11 +159,14 @@ su - <<EOF
 rm /opt/oracle/scripts/startup/00_start_apex_ords_installer.sh
 EOF
 
+# Clean up the config file
+rm /home/oracle/config.env
+
 # Calculate the elapsed time
 end_time=$(date +%s)
 elapsed_time=$((end_time - start_time))
 
-# Convert elapsed time to human-readable format (optional)
+# Convert elapsed time to human-readable format
 hours=$((elapsed_time / 3600))
 minutes=$(( (elapsed_time % 3600) / 60 ))
 seconds=$((elapsed_time % 60))
@@ -171,6 +174,4 @@ seconds=$((elapsed_time % 60))
 # Print the elapsed time
 echo "Elapsed time: ${hours}h ${minutes}m ${seconds}s"
 
-
 echo '### APEX INSTALLED ###'
-                                                                 
