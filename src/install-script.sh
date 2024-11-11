@@ -80,3 +80,5 @@ echo "Container ${CONTAINER_NAME} has been created and started."
 echo "APEX installation will begin automatically."
 echo "You can monitor the installation progress with:"
 echo "docker logs -f ${CONTAINER_NAME}"
+
+loginctl enable-linger $UID
