@@ -21,31 +21,87 @@ read -rp "Enter host port for SSH [9922]: " SSH_PORT
 SSH_PORT=${SSH_PORT:-9922}
 
 read -rp "Enter email address for APEX admin: " APEX_EMAIL
-while [[ ! $APEX_EMAIL =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; do
+email_regex="^(([-a-zA-Z0-9\!#\$%\&\'*+/=?^_\`{\|}~]+|(\"([][,:;<>\&@a-zA-Z0-9\!#\$%\&\'*+/=?^_\`{\|}~-]|(\\\\[\\ \"]))+\"))\.)*([-a-zA-Z0-9\!#\$%\&\'*+/=?^_\`{\|}~]+|(\"([][,:;<>\&@a-zA-Z0-9\!#\$%\&\'*+/=?^_\`{\|}~-]|(\\\\[\\ \"]))+\"))@\w((-|\w)*\w)*\.(\w((-|\w)*\w)*\.)*\w{2,4}$"
+
+while [[ ! "$APEX_EMAIL" =~ $email_regex ]]; do
     echo "Invalid email format. Please try again."
     read -r -p "Enter email address for APEX admin: " APEX_EMAIL
 done
 
-read -r -s -p "Enter Oracle database password: " DB_PASSWORD
-echo
-while [[ ${#DB_PASSWORD} -lt 8 ]]; do
-    echo "Password must be at least 8 characters long"
+validate_password() {
+    local password=$1
+    local error_message=""
+    
+    # Check length (12-30 bytes)
+    if [[ ${#password} -lt 12 || ${#password} -gt 30 ]]; then
+        error_message="Password must be between 12 and 30 characters long.\n"
+    fi
+    
+    # Check for at least one digit
+    if [[ ! $password =~ [0-9] ]]; then
+        error_message+="Password must contain at least one digit.\n"
+    fi
+    
+    # Check for at least one uppercase letter
+    if [[ ! $password =~ [A-Z] ]]; then
+        error_message+="Password must contain at least one uppercase letter.\n"
+    fi
+    
+    # Check for at least one lowercase letter
+    if [[ ! $password =~ [a-z] ]]; then
+        error_message+="Password must contain at least one lowercase letter.\n"
+    fi
+    
+    # Check for special characters
+    if [[ ! $password =~ [\$\#\_\!\@\%\^\&\*] ]]; then
+        error_message+="Password must contain at least one special character (\$, #, _, !, @, %, ^, &, *).\n"
+    fi
+    
+    # Check if password is a common word (basic check)
+    if grep -iw "^${password}$" /usr/share/dict/words 2>/dev/null; then
+        error_message+="Password cannot be a common word.\n"
+    fi
+    
+    # Check for double quotes within password
+    if [[ $password == *\"* ]]; then
+        error_message+="Password cannot contain double quotation marks.\n"
+    fi
+    
+    # Check if password needs to be quoted
+    local needs_quotes=false
+    if [[ $password =~ ^[0-9] || $password =~ ^[\$\#\_\!\@\%\^\&\*] || $password =~ [^a-zA-Z0-9\$\#\_\!\@\%\^\&\*] ]]; then
+        needs_quotes=true
+    fi
+    
+    if [[ -n "$error_message" ]]; then
+        echo -e "$error_message"
+        return 1
+    fi
+    
+    if $needs_quotes; then
+        echo "Note: This password will need to be quoted in SQL statements."
+    fi
+    
+    return 0
+}
+
+# Database password prompt with validation
+while true; do
     read -r -s -p "Enter Oracle database password: " DB_PASSWORD
     echo
+    if validate_password "$DB_PASSWORD"; then
+        break
+    fi
 done
 
-read -r -s -p "Enter APEX admin password: " APEX_PASSWORD
-echo
-# Fixed password validation with properly escaped special characters
-while [[ ${#APEX_PASSWORD} -lt 12 ]] || \
-      [[ ! $APEX_PASSWORD =~ [A-Z] ]] || \
-      [[ ! $APEX_PASSWORD =~ [a-z] ]] || \
-      [[ ! $APEX_PASSWORD =~ [0-9] ]] || \
-      [[ ! $APEX_PASSWORD =~ [\!\@\#\$\%\^\&\*] ]]; do
-    echo "Password must contain at least 12 characters, including uppercase, lowercase, numbers, and special characters (!@#$%^&*)"
+# APEX admin password prompt with validation
+while true; do
     read -r -s -p "Enter APEX admin password: " APEX_PASSWORD
     echo
-done 
+    if validate_password "$APEX_PASSWORD"; then
+        break
+    fi
+done
 
 # Create temporary file with configurations
 cat > config.env << EOL

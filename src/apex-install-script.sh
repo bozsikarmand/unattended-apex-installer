@@ -4,6 +4,28 @@
 # Load configuration
 source /home/oracle/config.env
 
+# Add these new functions:
+needs_quotes() {
+    local pwd=$1
+    if [[ $pwd =~ ^[0-9] || $pwd =~ ^[\$\#\_\!\@\%\^\&\*] || $pwd =~ [^a-zA-Z0-9\$\#\_\!\@\%\^\&\*] ]]; then
+        return 0
+    fi
+    return 1
+}
+
+quote_password() {
+    local pwd=$1
+    if needs_quotes "$pwd"; then
+        echo "\"$pwd\""
+    else
+        echo "$pwd"
+    fi
+}
+
+# Create quoted versions of passwords
+QUOTED_DB_PASSWORD=$(quote_password "$DB_PASSWORD")
+QUOTED_APEX_PASSWORD=$(quote_password "$APEX_PASSWORD")
+
 # Start the timer
 start_time=$(date +%s)
 
@@ -26,7 +48,7 @@ EOF
 sqlplus / as sysdba <<EOF
 ALTER SESSION SET CONTAINER = FREEPDB1;
 ALTER USER APEX_PUBLIC_USER ACCOUNT UNLOCK;
-ALTER USER APEX_PUBLIC_USER IDENTIFIED BY "${DB_PASSWORD}";
+ALTER USER APEX_PUBLIC_USER IDENTIFIED BY ${QUOTED_DB_PASSWORD};
 EXIT;
 EOF
 
@@ -39,7 +61,7 @@ BEGIN
     APEX_UTIL.create_user(
         p_user_name       => 'ADMIN',
         p_email_address   => '${APEX_EMAIL}',
-        p_web_password    => '${APEX_PASSWORD}',
+        p_web_password    => '${QUOTED_APEX_PASSWORD}',
         p_developer_privs => 'ADMIN' );
         
     APEX_UTIL.set_security_group_id( null );
