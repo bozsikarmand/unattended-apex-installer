@@ -45,7 +45,7 @@ while [[ ${#APEX_PASSWORD} -lt 12 ]] || \
     echo "Password must contain at least 12 characters, including uppercase, lowercase, numbers, and special characters (!@#$%^&*)"
     read -r -s -p "Enter APEX admin password: " APEX_PASSWORD
     echo
-done
+done 
 
 # Create temporary file with configurations
 cat > config.env << EOL
