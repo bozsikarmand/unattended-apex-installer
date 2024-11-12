@@ -2,25 +2,25 @@
 # install.sh - Main installation script that collects user input and starts the container
 
 # Prompt for configuration values
-read -rp "Enter container name [apex]: " CONTAINER_NAME
+read -r -p "Enter container name [apex]: " CONTAINER_NAME
 CONTAINER_NAME=${CONTAINER_NAME:-apex}
 
-read -rp "Enter host port for Oracle DB [8521]: " DB_PORT
+read -r -p "Enter host port for Oracle DB [8521]: " DB_PORT
 DB_PORT=${DB_PORT:-8521}
 
-read -rp "Enter host port for Enterprise Manager [8500]: " EM_PORT
+read -r -p "Enter host port for Enterprise Manager [8500]: " EM_PORT
 EM_PORT=${EM_PORT:-8500}
 
-read -rp "Enter host port for ORDS [8023]: " ORDS_PORT
+read -r -p "Enter host port for ORDS [8023]: " ORDS_PORT
 ORDS_PORT=${ORDS_PORT:-8023}
 
-read -rp "Enter host port for ORDS HTTPS [9043]: " ORDS_SSL_PORT
+read -r -p "Enter host port for ORDS HTTPS [9043]: " ORDS_SSL_PORT
 ORDS_SSL_PORT=${ORDS_SSL_PORT:-9043}
 
-read -rp "Enter host port for SSH [9922]: " SSH_PORT
+read -r -p "Enter host port for SSH [9922]: " SSH_PORT
 SSH_PORT=${SSH_PORT:-9922}
 
-read -rp "Enter email address for APEX admin: " APEX_EMAIL
+read -r -p "Enter email address for APEX admin: " APEX_EMAIL
 email_regex="^(([-a-zA-Z0-9\!#\$%\&\'*+/=?^_\`{\|}~]+|(\"([][,:;<>\&@a-zA-Z0-9\!#\$%\&\'*+/=?^_\`{\|}~-]|(\\\\[\\ \"]))+\"))\.)*([-a-zA-Z0-9\!#\$%\&\'*+/=?^_\`{\|}~]+|(\"([][,:;<>\&@a-zA-Z0-9\!#\$%\&\'*+/=?^_\`{\|}~-]|(\\\\[\\ \"]))+\"))@\w((-|\w)*\w)*\.(\w((-|\w)*\w)*\.)*\w{2,4}$"
 
 while [[ ! "$APEX_EMAIL" =~ $email_regex ]]; do
