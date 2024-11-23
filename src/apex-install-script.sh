@@ -1,5 +1,5 @@
 #!/bin/bash
-# unattended_apex_install_23c.sh - Main APEX installation script that runs inside the container
+# apex-installscript.sh - Main APEX installation script that runs inside the container
 
 # Load configuration
 source /home/oracle/config.env

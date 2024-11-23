@@ -1,5 +1,5 @@
 #!/bin/bash
-# install.sh - Main installation script that collects user input and starts the container
+# install-script.sh - Main installation script that collects user input and starts the container
 
 # Prompt for configuration values
 read -r -p "Enter container name [apex]: " CONTAINER_NAME
