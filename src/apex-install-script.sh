@@ -159,6 +159,7 @@ ords --config /etc/ords/config config set standalone.static.path /home/oracle/so
 ords --config /etc/ords/config config set jdbc.InitialLimit 15 
 ords --config /etc/ords/config config set jdbc.MaxLimit 25 
 ords --config /etc/ords/config config set jdbc.MinLimit 15  
+ords --config /etc/ords/config config set standalone.https.port 8443 # NEW SSL
 EOF
 
 # Fix MBEAN Warning

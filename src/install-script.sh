@@ -14,8 +14,8 @@ EM_PORT=${EM_PORT:-8500}
 read -r -p "Enter host port for ORDS [8023]: " ORDS_PORT
 ORDS_PORT=${ORDS_PORT:-8023}
 
-read -r -p "Enter host port for ORDS HTTPS [9043]: " ORDS_SSL_PORT
-ORDS_SSL_PORT=${ORDS_SSL_PORT:-9043}
+read -r -p "Enter host port for ORDS HTTPS [8443]: " ORDS_SSL_PORT
+ORDS_SSL_PORT=${ORDS_SSL_PORT:-8443}
 
 read -r -p "Enter host port for SSH [9922]: " SSH_PORT
 SSH_PORT=${SSH_PORT:-9922}
