@@ -32,9 +32,9 @@ validate_password() {
     local password=$1
     local error_message=""
     
-    # Check length (12-30 bytes)
-    if [[ ${#password} -lt 12 || ${#password} -gt 30 ]]; then
-        error_message="Password must be between 12 and 30 characters long.\n"
+    # Check length (12-128 characters)
+    if [[ ${#password} -lt 12 || ${#password} -gt 128 ]]; then
+        error_message="Password must be between 12 and 128 characters long.\n"
     fi
     
     # Check for at least one digit
@@ -53,8 +53,8 @@ validate_password() {
     fi
     
     # Check for special characters
-    if [[ ! $password =~ [\$\#\_\!\@\%\^\&\*] ]]; then
-        error_message+="Password must contain at least one special character (\$, #, _, !, @, %, ^, &, *).\n"
+    if [[ ! $password =~ [\$\#\_\!\@\%\^\&\*\+] ]]; then
+        error_message+="Password must contain at least one special character (\$, #, _, !, @, %, ^, &, *, +).\n"
     fi
     
     # Check if password is a common word (basic check)
@@ -69,7 +69,7 @@ validate_password() {
     
     # Check if password needs to be quoted
     local needs_quotes=false
-    if [[ $password =~ ^[0-9] || $password =~ ^[\$\#\_\!\@\%\^\&\*] || $password =~ [^a-zA-Z0-9\$\#\_\!\@\%\^\&\*] ]]; then
+    if [[ $password =~ ^[0-9] || $password =~ ^[\$\#\_\!\@\%\^\&\*\+] || $password =~ [^a-zA-Z0-9\$\#\_\!\@\%\^\&\*\+] ]]; then
         needs_quotes=true
     fi
     
